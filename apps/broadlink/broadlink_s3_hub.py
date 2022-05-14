@@ -30,7 +30,8 @@ class BroadlinkS3Hub(hass.Hass):
 
     def handle_light_state(self, kwargs):
         gang = kwargs['gang']
-        self.entity.set_state(state=self._get_device_state(gang=gang))
+        entity_id = self.entity_ids[gang - 1]
+        self.set_state(entity_id, state=self._get_device_state(gang=gang))
         self.run_in(self.handle_light_state, self.scan_interval, gang=gang)
 
     def _get_device_state(self, gang):
@@ -46,23 +47,24 @@ class BroadlinkS3Hub(hass.Hass):
     def change_state(self, event_name, data, kwargs):
         gang = kwargs["gang"]
         entity_id = self.entity_ids[gang - 1]
-        recived_entity_id = None
         if isinstance(data["service_data"]["entity_id"], list):
-            recived_entity_id = data["service_data"]["entity_id"][0]
+            received_entity_id = data["service_data"]["entity_id"][0]
         else:
-            recived_entity_id = data["service_data"]["entity_id"]
+            received_entity_id = data["service_data"]["entity_id"]
         pwr = [None, None, None, None]
+
         self.log("Change state: '{event_name}'".format(event_name=event_name))
         self.log("Call service: '{service}'".format(service=data["service"]))
-        self.log("Data entity id: '{entity_id}'".format(entity_id=recived_entity_id))
+        self.log("Data entity id: '{entity_id}'".format(entity_id=received_entity_id))
         self.log("Entity id: '{entity_id}'".format(entity_id=entity_id))
-        if data["service"] == "turn_off" and recived_entity_id == entity_id:
+
+        if data["service"] == "turn_off" and received_entity_id == entity_id:
             self.log("Turn off '{entity}'".format(entity=entity_id))
             pwr[gang] = 0
             self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
-            self.entity.set_state(state="off")
-        elif data["service"] == "turn_on" and recived_entity_id == entity_id:
+            self.set_state(received_entity_id, state="off")
+        elif data["service"] == "turn_on" and received_entity_id == entity_id:
             self.log("Turn on '{entity}'".format(entity=entity_id))
             pwr[gang] = 1
             self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
-            self.entity.set_state(state="on")
+            self.set_state(received_entity_id, state="on")
