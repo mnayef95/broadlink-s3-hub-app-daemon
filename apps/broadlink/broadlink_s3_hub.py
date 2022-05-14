@@ -11,7 +11,6 @@ class BroadlinkS3Hub(hass.Hass):
         self.friendly_names = self.args["friendly_names"]
         self.device = broadlink.hello(self.args["hub_ip"])
 
-        self.log("Device: '{device}'".format(device=self.device))
         self.device.auth()
         for i in range(len(self.entity_ids)):
             self._create_entity(index=i)
@@ -45,26 +44,28 @@ class BroadlinkS3Hub(hass.Hass):
             return "off"
 
     def change_state(self, event_name, data, kwargs):
+        data_entity_id = data["service_data"]["entity_id"]
+        received_entity_id = data_entity_id[0] if isinstance(data_entity_id, list) else data_entity_id
         gang = kwargs["gang"]
         entity_id = self.entity_ids[gang - 1]
-        if isinstance(data["service_data"]["entity_id"], list):
-            received_entity_id = data["service_data"]["entity_id"][0]
-        else:
-            received_entity_id = data["service_data"]["entity_id"]
-        pwr = [None, None, None, None]
-
-        self.log("Change state: '{event_name}'".format(event_name=event_name))
-        self.log("Call service: '{service}'".format(service=data["service"]))
-        self.log("Data entity id: '{entity_id}'".format(entity_id=received_entity_id))
-        self.log("Entity id: '{entity_id}'".format(entity_id=entity_id))
 
         if data["service"] == "turn_off" and received_entity_id == entity_id:
-            self.log("Turn off '{entity}'".format(entity=entity_id))
-            pwr[gang] = 0
-            self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
-            self.set_state(received_entity_id, state="off")
+            self._turn_entity_off(gang=gang)
         elif data["service"] == "turn_on" and received_entity_id == entity_id:
-            self.log("Turn on '{entity}'".format(entity=entity_id))
-            pwr[gang] = 1
-            self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
-            self.set_state(received_entity_id, state="on")
+            self._turn_entity_on(gang=gang)
+
+    def _turn_entity_off(self, gang):
+        entity_id = self.entity_ids[gang - 1]
+        self.log("Turn off '{entity}'".format(entity=entity_id))
+        pwr = [None, None, None, None]
+        pwr[gang] = 0
+        self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
+        self.set_state(entity_id, state="off")
+
+    def _turn_entity_on(self, gang):
+        entity_id = self.entity_ids[gang - 1]
+        self.log("Turn on '{entity}'".format(entity=entity_id))
+        pwr = [None, None, None, None]
+        pwr[gang] = 1
+        self.device.set_state(self.did, pwr[1], pwr[2], pwr[3])
+        self.set_state(entity_id, state="on")
