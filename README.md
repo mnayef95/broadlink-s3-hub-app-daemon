@@ -1,4 +1,4 @@
-- # Support broadlink s3 hub in AppDaemon
+# Support broadlink s3 hub in AppDaemon
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg?style=for-the-badge)](https://github.com/custom-components/hacs) [![](https://img.shields.io/github/v/release/mnayef95/broadlink-s3-hub-app-daemon.svg?include_prereleases&style=for-the-badge)](https://github.com/ericmatte/ad-media-lights-sync/releases)
 
@@ -14,7 +14,35 @@ local `apps` directory, then add the configuration to enable the `broadlink_s3_h
 `config/appdaemon/apps/apps.yaml`
 
 ```yaml
-broadlink_s3_hub:
+one_gang_switch:
+  module: broadlink_s3_hub
+  class: BroadlinkS3Hub
+  hub_ip: "192.168.1.209"
+  did: "00000000000000000000a043b0d059ac"
+  scan_interval: 0.5
+  friendly_names:
+    - Gang 1 name
+  entity_ids:
+    - light.gang_1
+ ```
+
+```yaml
+two_gang_switch:
+  module: broadlink_s3_hub
+  class: BroadlinkS3Hub
+  hub_ip: "192.168.1.209"
+  did: "00000000000000000000a043b0d059ac"
+  scan_interval: 0.5
+  friendly_names:
+    - Gang 1 name
+    - Gang 2 name
+  entity_ids:
+    - light.gang_1
+    - light.gang_2
+ ```
+
+```yaml
+three_gang_switch:
   module: broadlink_s3_hub
   class: BroadlinkS3Hub
   hub_ip: "192.168.1.209"
@@ -29,6 +57,7 @@ broadlink_s3_hub:
     - light.gang_2
     - light.gang_3
  ```
+**Note: You can add multiple switches by duplicate the same config with different name**
 
 | key              | optional | type           | description                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 |------------------| -------- |----------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
